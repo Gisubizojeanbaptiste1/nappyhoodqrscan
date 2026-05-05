@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connect With Us</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- QR Code Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindConfig = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+    if (typeof tailwind !== 'undefined') tailwind.config = tailwindConfig;
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #030305;
+      color: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Ambient glow */
+    .ambient-glow {
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+    }
+
+    /* Scan line */
+    @keyframes scan {
+      0% { top: -10%; opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { top: 110%; opacity: 0; }
+    }
+    .scan-line {
+      position: fixed;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(99, 102, 241, 0.3), transparent);
+      animation: scan 6s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Social link cards */
+    .social-card {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 20px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(12px);
+      text-decoration: none;
+      color: #fff;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .social-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .social-card:hover {
+      transform: translateY(-3px) scale(1.01);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    .social-card:hover::before {
+      opacity: 1;
+    }
+    .social-card:active {
+      transform: translateY(0) scale(0.99);
+    }
+
+    /* Instagram */
+    .card-instagram::before {
+      background: linear-gradient(135deg, rgba(225, 48, 108, 0.08), rgba(252, 175, 69, 0.05));
+    }
+    .card-instagram:hover { border-color: rgba(225, 48, 108, 0.3); }
+    .card-instagram .social-icon { color: #E1306C; }
+
+    /* TikTok */
+    .card-tiktok::before {
+      background: linear-gradient(135deg, rgba(255, 0, 80, 0.08), rgba(0, 242, 234, 0.05));
+    }
+    .card-tiktok:hover { border-color: rgba(255, 0, 80, 0.3); }
+    .card-tiktok .social-icon { color: #ff0050; }
+
+    /* Snapchat */
+    .card-snapchat::before {
+      background: linear-gradient(135deg, rgba(255, 252, 0, 0.06), rgba(255, 252, 0, 0.02));
+    }
+    .card-snapchat:hover { border-color: rgba(255, 252, 0, 0.3); }
+    .card-snapchat .social-icon { color: #FFFC00; }
+
+    /* Google Reviews */
+    .card-google::before {
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.08), rgba(52, 168, 83, 0.05));
+    }
+    .card-google:hover { border-color: rgba(66, 133, 244, 0.3); }
+    .card-google .social-icon { color: #4285F4; }
+
+    /* Icon container */
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.4s ease;
+    }
+    .card-instagram .icon-box { background: rgba(225, 48, 108, 0.1); }
+    .card-instagram:hover .icon-box { background: rgba(225, 48, 108, 0.2); }
+    .card-tiktok .icon-box { background: rgba(255, 0, 80, 0.1); }
+    .card-tiktok:hover .icon-box { background: rgba(255, 0, 80, 0.2); }
+    .card-snapchat .icon-box { background: rgba(255, 252, 0, 0.08); }
+    .card-snapchat:hover .icon-box { background: rgba(255, 252, 0, 0.15); }
+    .card-google .icon-box { background: rgba(66, 133, 244, 0.1); }
+    .card-google:hover .icon-box { background: rgba(66, 133, 244, 0.2); }
+
+    /* Arrow */
+    .arrow-icon {
+      opacity: 0.3;
+      transition: all 0.3s ease;
+    }
+    .social-card:hover .arrow-icon {
+      opacity: 0.8;
+      transform: translateX(3px);
+    }
+
+    /* Fade in animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in {
+      opacity: 0;
+      animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+    .delay-6 { animation-delay: 0.6s; }
+
+    /* Pulse ring on logo */
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 0.4; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .pulse-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      animation: pulseRing 2.5s ease-out infinite;
+    }
+
+    /* QR Modal */
+    .qr-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .qr-modal-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .qr-modal {
+      background: #0a0a0f;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 32px;
+      max-width: 380px;
+      width: 90%;
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .qr-modal-overlay.active .qr-modal {
+      transform: scale(1) translateY(0);
+    }
+    #qrcode-container {
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+    #qrcode-container img,
+    #qrcode-container canvas {
+      border-radius: 8px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10B981;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 200;
+      backdrop-filter: blur(12px);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Vignette */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <!-- Background effects -->
+  <div class="bg-grid"></div>
+  <div class="ambient-glow"></div>
+  <div class="scan-line"></div>
+  <div class="vignette"></div>
+
+  <!-- Main Content -->
+  <main class="relative z-10 min-h-screen flex flex-col items-center justify-center px-5 py-12">
+
+    <!-- Logo / Brand -->
+    <div class="animate-in delay-1 flex flex-col items-center mb-10">
+      <div class="relative w-20 h-20 mb-5">
+        <div class="pulse-ring"></div>
+        <div class="w-full h-full rounded-full bg-gradient-to-br from-indigo-500/20 to-purple-500/10 border border-indigo-500/20 flex items-center justify-center">
+          <span class="text-2xl font-semibold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+            <!-- Replace with your brand initial or logo -->
+            YB
+          </span>
+        </div>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-semibold tracking-tight text-center mb-2">
+        <span class="bg-gradient-to-r from-white via-white to-slate-400 bg-clip-text text-transparent">Follow Us</span>
+      </h1>
+      <p class="text-slate-500 text-sm font-light tracking-wide text-center max-w-[260px]">
+        Stay connected across all our platforms
+      </p>
+    </div>
+
+    <!-- Social Links -->
+    <div class="w-full max-w-sm flex flex-col gap-3">
+
+      <!-- Instagram -->
+      <a href="https://instagram.com/YOUR_HANDLE" target="_blank" rel="noopener noreferrer"
+         class="social-card card-instagram animate-in delay-2">
+        <div class="icon-box">
+          <i class="fa-brands fa-instagram social-icon text-xl"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white">Instagram</div>
+          <div class="text-xs text-slate-500 font-light truncate">@YOUR_HANDLE</div>
+        </div>
+        <i class="fa-solid fa-arrow-right arrow-icon text-xs text-white"></i>
+      </a>
+
+      <!-- TikTok -->
+      <a href="https://tiktok.com/@YOUR_HANDLE" target="_blank" rel="noopener noreferrer"
+         class="social-card card-tiktok animate-in delay-3">
+        <div class="icon-box">
+          <i class="fa-brands fa-tiktok social-icon text-xl"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white">TikTok</div>
+          <div class="text-xs text-slate-500 font-light truncate">@YOUR_HANDLE</div>
+        </div>
+        <i class="fa-solid fa-arrow-right arrow-icon text-xs text-white"></i>
+      </a>
+
+      <!-- Snapchat -->
+      <a href="https://snapchat.com/add/YOUR_HANDLE" target="_blank" rel="noopener noreferrer"
+         class="social-card card-snapchat animate-in delay-4">
+        <div class="icon-box">
+          <i class="fa-brands fa-snapchat social-icon text-xl"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white">Snapchat</div>
+          <div class="text-xs text-slate-500 font-light truncate">@YOUR_HANDLE</div>
+        </div>
+        <i class="fa-solid fa-arrow-right arrow-icon text-xs text-white"></i>
+      </a>
+
+      <!-- Google Reviews -->
+      <a href="https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID" target="_blank" rel="noopener noreferrer"
+         class="social-card card-google animate-in delay-5">
+        <div class="icon-box">
+          <i class="fa-brands fa-google social-icon text-xl"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium text-white">Google Reviews</div>
+          <div class="text-xs text-slate-500 font-light truncate">Leave us a review ★</div>
+        </div>
+        <i class="fa-solid fa-arrow-right arrow-icon text-xs text-white"></i>
+      </a>
+
+    </div>
+
+    <!-- QR Code Button (for you / admin) -->
+    <button id="qr-btn"
+            class="animate-in delay-6 mt-10 flex items-center gap-2 text-xs text-slate-600 hover:text-slate-400 transition-colors duration-300 cursor-pointer bg-transparent border border-white/5 hover:border-white/10 rounded-full px-5 py-2.5 backdrop-blur-sm"
+            title="Generate QR Code for this page">
+      <i class="fa-solid fa-qrcode text-[10px]"></i>
+      <span>Get QR Code</span>
+    </button>
+
+  </main>
+
+  <!-- QR Code Modal -->
+  <div id="qr-overlay" class="qr-modal-overlay" onclick="closeQRModal(event)">
+    <div class="qr-modal" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-5">
+        <h3 class="text-base font-medium text-white">QR Code</h3>
+        <button onclick="closeQRModal()" class="text-slate-500 hover:text-white transition-colors cursor-pointer bg-transparent border-none text-lg p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <p class="text-xs text-slate-500 font-light mb-5 text-center">
+        Scan or download to share this page
+      </p>
+      <div id="qrcode-container" class="bg-white rounded-2xl p-4 inline-flex"></div>
+      <div class="flex gap-3 mt-6">
+        <button onclick="downloadQR()"
+                class="flex-1 flex items-center justify-center gap-2 bg-white text-black text-xs font-medium py-3 rounded-xl hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] transition-all duration-300 cursor-pointer border-none">
+          <i class="fa-solid fa-download text-[10px]"></i>
+          Download
+        </button>
+        <button onclick="copyLink()"
+                class="flex-1 flex items-center justify-center gap-2 bg-white/5 text-white text-xs font-medium py-3 rounded-xl hover:bg-white/10 transition-all duration-300 cursor-pointer border border-white/10">
+          <i class="fa-solid fa-link text-[10px]"></i>
+          Copy Link
+        </button>
+      </div>
+      <!-- URL display -->
+      <div class="mt-4 px-3 py-2.5 bg-white/3 rounded-lg border border-white/5">
+        <p id="url-display" class="text-[11px] text-slate-500 font-mono break-all text-center"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">
+    <i class="fa-solid fa-check mr-2"></i>
+    <span id="toast-text">Link copied!</span>
+  </div>
+
+  <script>
+    // ============================================
+    // CONFIGURATION — EDIT YOUR LINKS HERE
+    // ============================================
+    const CONFIG = {
+      brandName: "YB",              // Your brand initials / short name
+      instagram: "https://instagram.com/YOUR_HANDLE",
+      tiktok: "https://tiktok.com/@YOUR_HANDLE",
+      snapchat: "https://snapchat.com/add/YOUR_HANDLE",
+      googleReview: "https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID"
+    };
+
+    // Optional: Update links dynamically from config
+    // (If you prefer to just edit the HTML directly, you can skip this)
+    document.querySelectorAll('.social-card').forEach(card => {
+      // Links are already in HTML — this is just for reference
+    });
+
+    // ============================================
+    // QR CODE MODAL
+    // ============================================
+    let qrInstance = null;
+
+    document.getElementById('qr-btn').addEventListener('click', () => {
+      openQRModal();
+    });
+
+    function openQRModal() {
+      const overlay = document.getElementById('qr-overlay');
+      const container = document.getElementById('qrcode-container');
+      const urlDisplay = document.getElementById('url-display');
+      const pageUrl = window.location.href;
+
+      urlDisplay.textContent = pageUrl;
+
+      // Clear previous QR
+      container.innerHTML = '';
+
+      // Generate new QR
+      qrInstance = new QRCode(container, {
+        text: pageUrl,
+        width: 200,
+        height: 200,
+        colorDark: "#030305",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeQRModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      const overlay = document.getElementById('qr-overlay');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeQRModal();
+    });
+
+    // ============================================
+    // DOWNLOAD QR CODE
+    // ============================================
+    function downloadQR() {
+      const container = document.getElementById('qrcode-container');
+      const canvas = container.querySelector('canvas');
+      const img = container.querySelector('img');
+
+      if (canvas) {
+        downloadFromCanvas(canvas);
+      } else if (img) {
+        // Convert img to canvas first
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = img.naturalWidth || 200;
+        tempCanvas.height = img.naturalHeight || 200;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        downloadFromCanvas(tempCanvas);
+      }
+    }
+
+    function downloadFromCanvas(canvas) {
+      // Create a larger canvas with padding for better printing
+      const padding = 40;
+      const size = canvas.width + padding * 2;
+      const exportCanvas = document.createElement('canvas');
+      exportCanvas.width = size;
+      exportCanvas.height = size;
+      const ctx = exportCanvas.getContext('2d');
+
+      // White background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+
+      // Draw QR
+      ctx.drawImage(canvas, padding, padding);
+
+      const link = document.createElement('a');
+      link.download = 'qr-social-links.png';
+      link.href = exportCanvas.toDataURL('image/png');
+      link.click();
+
+      showToast('QR Code downloaded!');
+    }
+
+    // ============================================
+    // COPY LINK
+    // ============================================
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        showToast('Link copied to clipboard!');
+      }).catch(() => {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = window.location.href;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        showToast('Link copied to clipboard!');
+      });
+    }
+
+    // ============================================
+    // TOAST NOTIFICATION
+    // ============================================
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+      toastText.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+  </script>
+
+</body>
+</html>
