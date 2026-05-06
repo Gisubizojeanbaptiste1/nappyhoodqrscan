@@ -366,7 +366,7 @@
       <div class="relative w-24 h-24 mb-5">
         <div class="pulse-ring"></div>
         <div class="w-full h-full rounded-full overflow-hidden bg-green-50 p-1.5 border-2 border-green-100 shadow-lg">
-          <!-- YOUR LOGO — Make sure this file exists at public/images/logo/logo.webp -->
+          <!-- My LOGO — Make sure this file exists at /images/logo.webp -->
           <img
             src="/images/logo.webp"
             alt="NappyHood Logo"
@@ -429,20 +429,22 @@
       </a>
 
       <!-- Snapchat -->
-      <a href="https://www.snapchat.com/add/nappyhood_sonatube" target="_blank" rel="noopener noreferrer"
+      <!-- Updated with working invite link -->
+      <a href="https://www.snapchat.com/@nappyhood.salon?invite_id=vOsF2UyP&locale=en_RW&share_id=X5jauRIPR-Wp9c_v-bVNKA&sid=634611d8b1554fcc95b3322fb7d26d21" target="_blank" rel="noopener noreferrer"
          class="social-card card-snapchat animate-in delay-5">
         <div class="icon-box">
           <i class="fa-brands fa-snapchat text-lg"></i>
         </div>
         <div class="flex-1 min-w-0">
           <div class="text-sm font-semibold text-gray-900">Snapchat</div>
-          <div class="text-xs text-gray-400 font-light truncate">@nappyhood_sonatube</div>
+          <div class="text-xs text-gray-400 font-light truncate">@nappyhood.salon</div>
         </div>
         <i class="fa-solid fa-arrow-right arrow-icon text-xs"></i>
       </a>
 
       <!-- Google Reviews -->
-      <a href="https://search.google.com/local/writereview?placeid=ChIJxxxxxxxxxxxxxx" target="_blank" rel="noopener noreferrer"
+      <!-- Link set dynamically via JS below to avoid 404 -->
+      <a id="google-review-link" href="#" target="_blank" rel="noopener noreferrer"
          class="social-card card-google animate-in delay-6">
         <div class="icon-box">
           <i class="fa-brands fa-google text-lg"></i>
@@ -524,9 +526,21 @@
     // ============================================
     // CONFIGURATION
     // ============================================
-    // UPDATE THIS Google Review link with your real place ID
-    // Find it: Search your business on Google Maps → Share → look for placeid=
-    const GOOGLE_REVIEW_URL = 'https://search.google.com/local/writereview?placeid=ChIJxxxxxxxxxxxxxx';
+    
+    /* --- GOOGLE MAPS CID --- */
+    // Using the CID (Customer ID) extracted from your embed link.
+    // We use the maps.google.com/?cid= format because the specific 'writereview' 
+    // endpoint requires a different ID format (Place ID) which wasn't in the embed link.
+    // This link will open your Google Maps business profile where customers can click "Write a review".
+    const GOOGLE_CID = '0x19dca7b61facaf69:0xd0c32ae4bccf1f92';
+    const GOOGLE_REVIEW_URL = `https://maps.google.com/?cid=${GOOGLE_CID}`;
+
+    // ============================================
+    // INITIALIZE LINKS
+    // ============================================
+    // Set the href for the Google Review card dynamically so it matches the config
+    document.getElementById('google-review-link').href = GOOGLE_REVIEW_URL;
+
 
     // ============================================
     // QR CODE MODAL
