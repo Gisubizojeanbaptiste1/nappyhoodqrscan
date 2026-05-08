@@ -82,6 +82,7 @@
     .delay-5 { animation-delay: 0.5s; }
     .delay-6 { animation-delay: 0.6s; }
     .delay-7 { animation-delay: 0.7s; }
+    .delay-8 { animation-delay: 0.8s; }
 
     .organic-shape {
       border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
@@ -144,33 +145,37 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
     }
 
-    /* Instagram */
+    /* Specific Card Styles */
     .card-instagram::after { background: linear-gradient(135deg, rgba(225, 48, 108, 0.04), rgba(252, 175, 69, 0.03)); }
     .card-instagram:hover { border-color: rgba(225, 48, 108, 0.3); }
     .card-instagram .social-icon { color: #E1306C; }
     .card-instagram .icon-box { background: linear-gradient(135deg, #f9a8d4, #fcd34d); }
     .card-instagram .icon-box i { color: #fff; }
 
-    /* TikTok */
     .card-tiktok::after { background: linear-gradient(135deg, rgba(255, 0, 80, 0.04), rgba(0, 242, 234, 0.03)); }
     .card-tiktok:hover { border-color: rgba(255, 0, 80, 0.3); }
     .card-tiktok .social-icon { color: #ff0050; }
     .card-tiktok .icon-box { background: linear-gradient(135deg, #ff0050, #00f2ea); }
     .card-tiktok .icon-box i { color: #fff; }
 
-    /* Snapchat */
     .card-snapchat::after { background: linear-gradient(135deg, rgba(255, 252, 0, 0.05), rgba(255, 252, 0, 0.02)); }
     .card-snapchat:hover { border-color: rgba(255, 252, 0, 0.5); }
     .card-snapchat .social-icon { color: #FFFC00; }
     .card-snapchat .icon-box { background: linear-gradient(135deg, #FFFC00, #fde047); }
     .card-snapchat .icon-box i { color: #1a1a1a; }
 
-    /* Google Reviews */
     .card-google::after { background: linear-gradient(135deg, rgba(66, 133, 244, 0.04), rgba(52, 168, 83, 0.03)); }
     .card-google:hover { border-color: rgba(66, 133, 244, 0.3); }
     .card-google .social-icon { color: #4285F4; }
     .card-google .icon-box { background: linear-gradient(135deg, #4285F4, #34A853); }
     .card-google .icon-box i { color: #fff; }
+
+    /* MENU CARD - New Style */
+    .card-menu::after { background: linear-gradient(135deg, rgba(245, 158, 11, 0.05), rgba(217, 119, 6, 0.03)); }
+    .card-menu:hover { border-color: rgba(245, 158, 11, 0.4); }
+    .card-menu .social-icon { color: #D97706; }
+    .card-menu .icon-box { background: linear-gradient(135deg, #F59E0B, #D97706); }
+    .card-menu .icon-box i { color: #fff; }
 
     .icon-box {
       width: 46px;
@@ -205,24 +210,26 @@
       animation: pulseRing 2.5s ease-out infinite;
     }
 
-    /* QR Modal */
-    .qr-modal-overlay {
+    /* Modals (Shared styles) */
+    .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(8px);
       z-index: 100;
       display: flex;
-      align-items: center;
+      align-items: center; /* Center for QR */
       justify-content: center;
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s ease;
     }
-    .qr-modal-overlay.active {
+    .modal-overlay.active {
       opacity: 1;
       pointer-events: all;
     }
+    
+    /* QR Modal Specifics */
     .qr-modal {
       background: #ffffff;
       border: 1px solid #f3f4f6;
@@ -234,9 +241,112 @@
       transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
     }
-    .qr-modal-overlay.active .qr-modal {
+    .modal-overlay.active .qr-modal {
       transform: scale(1) translateY(0);
     }
+
+    /* Menu Modal Specifics */
+    .menu-modal {
+      background: #ffffff;
+      width: 100%;
+      max-width: 460px;
+      height: 95vh;
+      border-radius: 24px 24px 0 0; /* Rounded top, flat bottom on mobile or fully rounded on desktop */
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translate(-50%, 100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+    }
+    
+    @media(min-width: 640px) {
+      .menu-modal {
+        height: 85vh;
+        border-radius: 28px;
+        bottom: auto;
+        top: 50%;
+        transform: translate(-50%, -40%); /* Start slightly lower */
+      }
+      .modal-overlay.active .menu-modal {
+        transform: translate(-50%, -50%); /* Center perfectly */
+      }
+    }
+
+    .modal-overlay.active .menu-modal {
+      transform: translate(-50%, 0);
+    }
+    @media(min-width: 640px) {
+      .modal-overlay.active .menu-modal {
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    /* Menu Content */
+    .menu-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      z-index: 10;
+    }
+    .menu-tabs {
+      display: flex;
+      gap: 10px;
+      padding: 15px 24px;
+      overflow-x: auto;
+      background: #f9fafb;
+      border-bottom: 1px solid #f3f4f6;
+      scrollbar-width: none; /* Firefox */
+    }
+    .menu-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+    
+    .menu-tab {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      background: #fff;
+      color: #6b7280;
+      border: 1px solid #e5e7eb;
+      transition: all 0.2s;
+    }
+    .menu-tab.active {
+      background: #047857;
+      color: #fff;
+      border-color: #047857;
+    }
+
+    .menu-image-container {
+      flex: 1;
+      position: relative;
+      background: #f3f4f6;
+      overflow-y: auto;
+      display: flex;
+      align-items: flex-start; /* Align top so long images scroll */
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .menu-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      display: none; /* Hidden by default */
+    }
+    .menu-img.active {
+      display: block;
+      animation: fadeUp 0.3s ease;
+    }
+
     #qrcode-container {
       display: flex;
       justify-content: center;
@@ -291,7 +401,6 @@
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      /* gradient-green? */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -366,7 +475,7 @@
       <div class="relative w-24 h-24 mb-5">
         <div class="pulse-ring"></div>
         <div class="w-full h-full rounded-full overflow-hidden bg-green-50 p-1.5 border-2 border-green-100 shadow-lg">
-          <!-- My LOGO — Make sure this file exists at /images/logo.webp -->
+          <!-- My LOGO -->
           <img
             src="/images/logo.webp"
             alt="NappyHood Logo"
@@ -395,12 +504,24 @@
     <!-- Section Label -->
     <div class="animate-in delay-2 mb-5">
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-green-50 border border-green-100">
-        <span class="text-xs text-brand-green font-medium">Follow Us</span>
+        <span class="text-xs text-brand-green font-medium">Connect & Explore</span>
       </div>
     </div>
 
-    <!-- Social Links -->
+    <!-- Social Links & Menu -->
     <div class="w-full max-w-sm flex flex-col gap-3">
+
+      <!-- MENU & PRICES BUTTON (New) -->
+      <div onclick="openMenuModal()" class="social-card card-menu animate-in delay-3">
+        <div class="icon-box">
+          <i class="fa-solid fa-receipt text-lg"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-semibold text-gray-900">View Menu & Prices</div>
+          <div class="text-xs text-gray-400 font-light truncate">Haircuts, Styles & Services</div>
+        </div>
+        <i class="fa-solid fa-chevron-right arrow-icon text-xs"></i>
+      </div>
 
       <!-- Instagram -->
       <a href="https://www.instagram.com/nappyhood_sonatube" target="_blank" rel="noopener noreferrer"
@@ -429,7 +550,6 @@
       </a>
 
       <!-- Snapchat -->
-      <!-- Updated with working invite link -->
       <a href="https://www.snapchat.com/@nappyhood.salon?invite_id=vOsF2UyP&locale=en_RW&share_id=X5jauRIPR-Wp9c_v-bVNKA&sid=634611d8b1554fcc95b3322fb7d26d21" target="_blank" rel="noopener noreferrer"
          class="social-card card-snapchat animate-in delay-5">
         <div class="icon-box">
@@ -443,7 +563,6 @@
       </a>
 
       <!-- Google Reviews -->
-      <!-- Link set dynamically via JS below to avoid 404 -->
       <a id="google-review-link" href="#" target="_blank" rel="noopener noreferrer"
          class="social-card card-google animate-in delay-6">
         <div class="icon-box">
@@ -459,7 +578,7 @@
     </div>
 
     <!-- Book a Call -->
-    <div class="w-full max-w-sm mt-6 animate-in delay-6">
+    <div class="w-full max-w-sm mt-6 animate-in delay-7">
       <a href="tel:0791375988" class="book-call-btn">
         <i class="fa-solid fa-phone text-sm"></i>
         Book an Appointment
@@ -474,7 +593,7 @@
 
     <!-- QR Code Button (admin only) -->
     <button id="qr-btn"
-            class="animate-in delay-7 mt-8 flex items-center gap-2 text-[11px] text-gray-300 hover:text-gray-500 transition-colors duration-300 cursor-pointer bg-transparent border border-gray-100 hover:border-gray-200 rounded-full px-4 py-2"
+            class="animate-in delay-8 mt-8 flex items-center gap-2 text-[11px] text-gray-300 hover:text-gray-500 transition-colors duration-300 cursor-pointer bg-transparent border border-gray-100 hover:border-gray-200 rounded-full px-4 py-2"
             title="Generate QR Code for this page">
       <i class="fa-solid fa-qrcode text-[10px]"></i>
       <span>Get QR Code</span>
@@ -482,8 +601,40 @@
 
   </main>
 
-  <!-- QR Code Modal -->
-  <div id="qr-overlay" class="qr-modal-overlay" onclick="closeQRModal(event)">
+  <!-- ============================================== -->
+  <!-- MENU MODAL (New Feature) -->
+  <!-- ============================================== -->
+  <div id="menu-overlay" class="modal-overlay" onclick="closeMenuModal(event)">
+    <div class="menu-modal" onclick="event.stopPropagation()">
+      
+      <!-- Menu Header -->
+      <div class="menu-header">
+        <div>
+          <h3 class="text-lg font-bold text-brand-green-dark">Menu & Prices</h3>
+          <p class="text-[11px] text-gray-400">Select a category below</p>
+        </div>
+        <button onclick="closeMenuModal()" class="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer bg-transparent border-none text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Menu Tabs (Generated via JS) -->
+      <div class="menu-tabs" id="menu-tabs-container">
+        <!-- Tabs injected here -->
+      </div>
+
+      <!-- Menu Image Area -->
+      <div class="menu-image-container" id="menu-images-container">
+        <!-- Images injected here -->
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- QR CODE MODAL -->
+  <!-- ============================================== -->
+  <div id="qr-overlay" class="modal-overlay" onclick="closeQRModal(event)">
     <div class="qr-modal" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between mb-5">
         <div>
@@ -523,34 +674,116 @@
   </div>
 
   <script>
+    // You can add more categories if you want.
+    const menuData = [
+      {
+        id: 'Kids',
+        label: 'Kids Below 10 years old',
+        src: './images/child.png', 
+        active: true
+      },
+      {
+        id: 'Adults',
+        label: 'Adults',
+        src: './images/adult1.png',
+        active: false
+      },
+      {
+        id: 'Adult',
+        label: 'Adults',
+        src: './images/adult2.png',
+        active: false
+      }
+    ];
+
     // ============================================
-    // CONFIGURATION
+    // CONFIGURATION: GOOGLE MAPS
     // ============================================
-    
     /* --- GOOGLE MAPS CID --- */
     // Using the CID (Customer ID) extracted from your embed link.
-    // We use the maps.google.com/?cid= format because the specific 'writereview' 
-    // endpoint requires a different ID format (Place ID) which wasn't in the embed link.
-    // This link will open your Google Maps business profile where customers can click "Write a review".
+    // Note: If this link does not open the "Write Review" box directly on mobile,
+    // it is because Google sometimes restricts deep linking without a Place ID.
+    // This link WILL open your map page correctly.
     const GOOGLE_CID = '0x19dca7b61facaf69:0xd0c32ae4bccf1f92';
     const GOOGLE_REVIEW_URL = `https://maps.google.com/?cid=${GOOGLE_CID}`;
 
-    // ============================================
-    // INITIALIZE LINKS
-    // ============================================
-    // Set the href for the Google Review card dynamically so it matches the config
+    // Initialize Google Link
     document.getElementById('google-review-link').href = GOOGLE_REVIEW_URL;
 
 
     // ============================================
-    // QR CODE MODAL
+    // MENU MODAL LOGIC
+    // ============================================
+    
+    function renderMenu() {
+      const tabsContainer = document.getElementById('menu-tabs-container');
+      const imagesContainer = document.getElementById('menu-images-container');
+      
+      tabsContainer.innerHTML = '';
+      imagesContainer.innerHTML = '';
+
+      menuData.forEach((item) => {
+        // Create Tab
+        const tabBtn = document.createElement('button');
+        tabBtn.className = `menu-tab ${item.active ? 'active' : ''}`;
+        tabBtn.textContent = item.label;
+        tabBtn.onclick = () => switchMenu(item.id);
+        tabsContainer.appendChild(tabBtn);
+
+        // Create Image
+        const img = document.createElement('img');
+        img.src = item.src;
+        img.alt = item.label;
+        img.className = `menu-img ${item.active ? 'active' : ''}`;
+        img.id = `img-${item.id}`;
+        
+        // Handle image error (optional fallback)
+        img.onerror = function() {
+           this.alt = "Image not found. Check URL in configuration.";
+           this.style.background = "#fee2e2";
+           this.style.padding = "20px";
+           this.style.color = "#ef4444";
+        };
+
+        imagesContainer.appendChild(img);
+      });
+    }
+
+    function switchMenu(id) {
+      // Update Data State
+      menuData.forEach(item => {
+        item.active = (item.id === id);
+      });
+      
+      // Re-render (simple approach for small data)
+      renderMenu();
+    }
+
+    const menuOverlay = document.getElementById('menu-overlay');
+
+    function openMenuModal() {
+      renderMenu(); // Ensure fresh state
+      menuOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenuModal(event) {
+      // Only close if clicking overlay or close button, not when interacting with scroll
+      if (event && event.target !== menuOverlay && event.target.tagName !== 'BUTTON') return;
+      menuOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+
+    // ============================================
+    // QR CODE MODAL LOGIC
     // ============================================
     let qrInstance = null;
+    const qrOverlay = document.getElementById('qr-overlay');
 
     document.getElementById('qr-btn').addEventListener('click', openQRModal);
 
     function openQRModal() {
-      const overlay = document.getElementById('qr-overlay');
       const container = document.getElementById('qrcode-container');
       const urlDisplay = document.getElementById('url-display');
       const pageUrl = window.location.href;
@@ -567,18 +800,21 @@
         correctLevel: QRCode.CorrectLevel.H
       });
 
-      overlay.classList.add('active');
+      qrOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
 
     function closeQRModal(event) {
-      if (event && event.target !== event.currentTarget) return;
-      document.getElementById('qr-overlay').classList.remove('active');
+      if (event && event.target !== qrOverlay) return;
+      qrOverlay.classList.remove('active');
       document.body.style.overflow = '';
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeQRModal();
+      if (e.key === 'Escape') {
+        closeQRModal();
+        closeMenuModal({target: menuOverlay});
+      }
     });
 
     // ============================================
