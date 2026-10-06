@@ -304,11 +304,25 @@
       overflow: hidden;
       display: flex;
     }
-    .menu-pdf-frame {
+    .menu-pdf-scroll {
       flex: 1;
-      width: 100%;
-      border: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #f3f4f6;
+      -webkit-overflow-scrolling: touch;
+    }
+    .menu-page-canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
       background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
 
     .pdf-loader {
@@ -658,9 +672,11 @@
         </button>
       </div>
 
-      <!-- PDF Viewer (src is only set when the modal opens) -->
+      <!-- PDF Viewer: pages are drawn with PDF.js (starts only when the modal opens) -->
       <div class="menu-pdf-container">
-        <iframe id="menu-pdf-frame" class="menu-pdf-frame" title="NappyHood Menu & Prices"></iframe>
+        <div class="menu-pdf-scroll" id="menu-pdf-scroll">
+          <!-- Page canvases are appended here -->
+        </div>
 
         <!-- Loading state -->
         <div class="pdf-loader" id="pdf-loader">
@@ -669,12 +685,12 @@
           <p class="pdf-loader-text" id="pdf-loader-text">This is a large file, so it can take a moment on mobile data.</p>
         </div>
 
-        <!-- Fallback where the PDF can't be shown inside the modal (iOS Safari) -->
+        <!-- Shown only if the viewer itself can't run — the PDF still opens from here -->
         <div class="pdf-fallback" id="pdf-fallback" hidden>
           <i class="fa-solid fa-file-pdf text-5xl text-red-400"></i>
           <div>
             <p class="text-sm font-semibold text-gray-800">NappyHood Menu & Prices</p>
-            <p class="text-xs text-gray-400 mt-1">Tap below to view the full menu in your browser.</p>
+            <p class="text-xs text-gray-400 mt-1" id="pdf-fallback-msg">Tap below to view the full menu in your browser.</p>
           </div>
           <a href="./menu.pdf" target="_blank" rel="noopener" class="pdf-action-btn primary" style="flex: 0 0 auto; padding: 14px 24px;">
             <i class="fa-solid fa-up-right-from-square"></i> Open menu (PDF)
@@ -754,56 +770,91 @@
 
 
     // ============================================
-    // MENU MODAL LOGIC (PDF, lazy loaded)
+    // MENU MODAL LOGIC (PDF.js, lazy loaded)
     // ============================================
+    // Mozilla's PDF.js draws the PDF onto <canvas> elements. Unlike an <iframe>,
+    // it needs no browser PDF plugin, so it works even when Chrome blocks
+    // embedded PDFs — and because menu.pdf is linearized and Netlify serves
+    // byte ranges, it only fetches the pages it is drawing.
     const MENU_PDF = './menu.pdf';
-
-    // iOS Safari can't reliably render a PDF inside an <iframe>,
-    // so those devices get an "Open menu" button instead.
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const PDFJS_VERSION = '3.11.174';
+    const PDFJS_LIB = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.min.js`;
+    const PDFJS_WORKER = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
 
     const menuOverlay = document.getElementById('menu-overlay');
-    const menuFrame = document.getElementById('menu-pdf-frame');
+    const menuScroll = document.getElementById('menu-pdf-scroll');
     const menuLoader = document.getElementById('pdf-loader');
     const menuLoaderText = document.getElementById('pdf-loader-text');
     const menuFallback = document.getElementById('pdf-fallback');
+    const menuFallbackMsg = document.getElementById('pdf-fallback-msg');
 
     let menuPdfRequested = false;
-    let menuLoaderTimer = null;
 
-    // Only fetches the PDF the first time the modal is opened,
-    // so the landing page itself stays fast.
-    function loadMenuPdf() {
-      if (menuPdfRequested) return;
-      menuPdfRequested = true;
-
-      if (isIOS) {
-        menuFrame.style.display = 'none';
-        menuLoader.style.display = 'none';
-        menuFallback.hidden = false;
-        return;
-      }
-
-      menuFrame.addEventListener('load', () => {
-        menuLoader.style.display = 'none';
-        clearTimeout(menuLoaderTimer);
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('Could not load ' + src));
+        document.head.appendChild(s);
       });
+    }
 
-      // Big file: after 15s point people at the "Open in new tab" button.
-      menuLoaderTimer = setTimeout(() => {
-        if (menuLoader.style.display !== 'none') {
-          menuLoaderText.textContent = 'Still loading… you can also tap “Open in new tab” below.';
+    function showPdfFallback(message) {
+      menuLoader.style.display = 'none';
+      menuFallbackMsg.textContent = message;
+      menuFallback.hidden = false;
+    }
+
+    // Draws one page at display width (sharp on retina screens, capped at 2x
+    // so six A4 pages don't eat too much memory).
+    async function drawPdfPage(pdf, pageNumber) {
+      const page = await pdf.getPage(pageNumber);
+      const base = page.getViewport({ scale: 1 });
+      const cssWidth = Math.max(menuScroll.clientWidth - 32, 240);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const viewport = page.getViewport({ scale: (cssWidth / base.width) * dpr });
+
+      const canvas = document.createElement('canvas');
+      canvas.className = 'menu-page-canvas';
+      canvas.style.width = cssWidth + 'px';
+      canvas.width = Math.floor(viewport.width);
+      canvas.height = Math.floor(viewport.height);
+
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      menuScroll.appendChild(canvas);
+    }
+
+    async function renderMenuPdf() {
+      try {
+        if (!window.pdfjsLib) await loadScript(PDFJS_LIB);
+        if (!window.pdfjsLib) throw new Error('PDF.js failed to load');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+
+        const pdf = await pdfjsLib.getDocument({ url: MENU_PDF }).promise;
+
+        // Page 1 first so the menu appears as early as possible, then the rest.
+        for (let n = 1; n <= pdf.numPages; n++) {
+          menuLoaderText.textContent = `Rendering page ${n} of ${pdf.numPages}…`;
+          await drawPdfPage(pdf, n);
+          if (n === 1) menuLoader.style.display = 'none';
         }
-      }, 15000);
-
-      menuFrame.src = MENU_PDF;
+        menuLoader.style.display = 'none';
+      } catch (err) {
+        console.error('Could not render menu.pdf:', err);
+        showPdfFallback('The menu could not be shown inside this browser — open it with the button below instead.');
+      }
     }
 
     function openMenuModal() {
       menuOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
-      loadMenuPdf();
+
+      // Only start fetching when the modal is actually opened,
+      // so the landing page itself stays fast.
+      if (menuPdfRequested) return;
+      menuPdfRequested = true;
+      renderMenuPdf();
     }
 
     function closeMenuModal(event) {
