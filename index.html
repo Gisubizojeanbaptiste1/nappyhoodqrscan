@@ -295,57 +295,96 @@
       background: #fff;
       z-index: 10;
     }
-    .menu-tabs {
-      display: flex;
-      gap: 10px;
-      padding: 15px 24px;
-      overflow-x: auto;
-      background: #f9fafb;
-      border-bottom: 1px solid #f3f4f6;
-      scrollbar-width: none; /* Firefox */
-    }
-    .menu-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
-    
-    .menu-tab {
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      background: #fff;
-      color: #6b7280;
-      border: 1px solid #e5e7eb;
-      transition: all 0.2s;
-    }
-    .menu-tab.active {
-      background: #047857;
-      color: #fff;
-      border-color: #047857;
-    }
-
-    .menu-image-container {
+    /* Menu PDF viewer (replaces the old image tabs) */
+    .menu-pdf-container {
       flex: 1;
       position: relative;
       background: #f3f4f6;
-      overflow-y: auto;
+      overflow: hidden;
       display: flex;
-      align-items: flex-start; /* Align top so long images scroll */
+    }
+    .menu-pdf-frame {
+      flex: 1;
+      width: 100%;
+      border: 0;
+      background: #fff;
+    }
+
+    .pdf-loader {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       justify-content: center;
-      padding: 20px;
+      gap: 6px;
+      padding: 24px;
+      text-align: center;
+      background: #f3f4f6;
     }
-    
-    .menu-img {
-      max-width: 100%;
-      height: auto;
-      border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      display: none; /* Hidden by default */
+    .pdf-spinner {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 3px solid #e5e7eb;
+      border-top-color: #047857;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 8px;
     }
-    .menu-img.active {
-      display: block;
-      animation: fadeUp 0.3s ease;
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .pdf-loader-title { font-size: 13px; font-weight: 600; color: #374151; }
+    .pdf-loader-text { font-size: 11px; color: #9ca3af; max-width: 250px; line-height: 1.6; }
+
+    /* Fallback for browsers that can't render a PDF inside the modal (iOS Safari) */
+    .pdf-fallback {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      padding: 32px;
+      text-align: center;
+      background: #f9fafb;
     }
+    .pdf-fallback[hidden] { display: none; }
+
+    .menu-actions {
+      display: flex;
+      gap: 10px;
+      padding: 14px 20px;
+      background: #fff;
+      border-top: 1px solid #f3f4f6;
+    }
+    .pdf-action-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.3s ease;
+    }
+    .pdf-action-btn.primary {
+      background: linear-gradient(to right, #F59E0B, #D97706);
+      color: #000;
+    }
+    .pdf-action-btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.4);
+    }
+    .pdf-action-btn.ghost {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+    }
+    .pdf-action-btn.ghost:hover { background: #f9fafb; }
 
     #qrcode-container {
       display: flex;
@@ -518,7 +557,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <div class="text-sm font-semibold text-gray-900">View Menu & Prices</div>
-          <div class="text-xs text-gray-400 font-light truncate">Haircuts, Styles & Services</div>
+          <div class="text-xs text-gray-400 font-light truncate">Menu, prices & more · PDF</div>
         </div>
         <i class="fa-solid fa-chevron-right arrow-icon text-xs"></i>
       </div>
@@ -602,7 +641,7 @@
   </main>
 
   <!-- ============================================== -->
-  <!-- MENU MODAL (New Feature) -->
+  <!-- MENU MODAL (PDF viewer, loaded on demand)      -->
   <!-- ============================================== -->
   <div id="menu-overlay" class="modal-overlay" onclick="closeMenuModal(event)">
     <div class="menu-modal" onclick="event.stopPropagation()">
@@ -611,21 +650,45 @@
       <div class="menu-header">
         <div>
           <h3 class="text-lg font-bold text-brand-green-dark">Menu & Prices</h3>
-          <p class="text-[11px] text-gray-400">Select a category below</p>
+          <p class="text-[11px] text-gray-400">Full price list & more · PDF</p>
         </div>
         <button onclick="closeMenuModal()" class="text-gray-400 hover:text-gray-700 transition-colors cursor-pointer bg-transparent border-none text-lg w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
-      <!-- Menu Tabs (Generated via JS) -->
-      <div class="menu-tabs" id="menu-tabs-container">
-        <!-- Tabs injected here -->
+      <!-- PDF Viewer (src is only set when the modal opens) -->
+      <div class="menu-pdf-container">
+        <iframe id="menu-pdf-frame" class="menu-pdf-frame" title="NappyHood Menu & Prices"></iframe>
+
+        <!-- Loading state -->
+        <div class="pdf-loader" id="pdf-loader">
+          <div class="pdf-spinner"></div>
+          <p class="pdf-loader-title">Loading the menu…</p>
+          <p class="pdf-loader-text" id="pdf-loader-text">This is a large file, so it can take a moment on mobile data.</p>
+        </div>
+
+        <!-- Fallback where the PDF can't be shown inside the modal (iOS Safari) -->
+        <div class="pdf-fallback" id="pdf-fallback" hidden>
+          <i class="fa-solid fa-file-pdf text-5xl text-red-400"></i>
+          <div>
+            <p class="text-sm font-semibold text-gray-800">NappyHood Menu & Prices</p>
+            <p class="text-xs text-gray-400 mt-1">Tap below to view the full menu in your browser.</p>
+          </div>
+          <a href="./menu.pdf" target="_blank" rel="noopener" class="pdf-action-btn primary" style="flex: 0 0 auto; padding: 14px 24px;">
+            <i class="fa-solid fa-up-right-from-square"></i> Open menu (PDF)
+          </a>
+        </div>
       </div>
 
-      <!-- Menu Image Area -->
-      <div class="menu-image-container" id="menu-images-container">
-        <!-- Images injected here -->
+      <!-- Actions -->
+      <div class="menu-actions">
+        <a href="./menu.pdf" target="_blank" rel="noopener" class="pdf-action-btn primary">
+          <i class="fa-solid fa-up-right-from-square"></i> Open in new tab
+        </a>
+        <a href="./menu.pdf" download="NappyHood-Menu-Prices.pdf" class="pdf-action-btn ghost">
+          <i class="fa-solid fa-download"></i> Download
+        </a>
       </div>
       
     </div>
@@ -674,28 +737,6 @@
   </div>
 
   <script>
-    // You can add more categories if you want.
-    const menuData = [
-      {
-        id: 'Kids',
-        label: 'Kids Below 10 years old',
-        src: './images/child.png', 
-        active: true
-      },
-      {
-        id: 'Adults',
-        label: 'Adults',
-        src: './images/adult3.png',
-        active: false
-      },
-      {
-        id: 'Adult',
-        label: 'Adults',
-        src: './images/adult4.png',
-        active: false
-      }
-    ];
-
     // ============================================
     // CONFIGURATION: GOOGLE MAPS
     // ============================================
@@ -712,64 +753,62 @@
 
 
     // ============================================
-    // MENU MODAL LOGIC
+    // MENU MODAL LOGIC (PDF, lazy loaded)
     // ============================================
-    
-    function renderMenu() {
-      const tabsContainer = document.getElementById('menu-tabs-container');
-      const imagesContainer = document.getElementById('menu-images-container');
-      
-      tabsContainer.innerHTML = '';
-      imagesContainer.innerHTML = '';
+    const MENU_PDF = './menu.pdf';
 
-      menuData.forEach((item) => {
-        // Create Tab
-        const tabBtn = document.createElement('button');
-        tabBtn.className = `menu-tab ${item.active ? 'active' : ''}`;
-        tabBtn.textContent = item.label;
-        tabBtn.onclick = () => switchMenu(item.id);
-        tabsContainer.appendChild(tabBtn);
-
-        // Create Image
-        const img = document.createElement('img');
-        img.src = item.src;
-        img.alt = item.label;
-        img.className = `menu-img ${item.active ? 'active' : ''}`;
-        img.id = `img-${item.id}`;
-        
-        // Handle image error (optional fallback)
-        img.onerror = function() {
-           this.alt = "Image not found. Check URL in configuration.";
-           this.style.background = "#fee2e2";
-           this.style.padding = "20px";
-           this.style.color = "#ef4444";
-        };
-
-        imagesContainer.appendChild(img);
-      });
-    }
-
-    function switchMenu(id) {
-      // Update Data State
-      menuData.forEach(item => {
-        item.active = (item.id === id);
-      });
-      
-      // Re-render (simple approach for small data)
-      renderMenu();
-    }
+    // iOS Safari can't reliably render a PDF inside an <iframe>,
+    // so those devices get an "Open menu" button instead.
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     const menuOverlay = document.getElementById('menu-overlay');
+    const menuFrame = document.getElementById('menu-pdf-frame');
+    const menuLoader = document.getElementById('pdf-loader');
+    const menuLoaderText = document.getElementById('pdf-loader-text');
+    const menuFallback = document.getElementById('pdf-fallback');
+
+    let menuPdfRequested = false;
+    let menuLoaderTimer = null;
+
+    // Only fetches the PDF the first time the modal is opened,
+    // so the landing page itself stays fast.
+    function loadMenuPdf() {
+      if (menuPdfRequested) return;
+      menuPdfRequested = true;
+
+      if (isIOS) {
+        menuFrame.style.display = 'none';
+        menuLoader.style.display = 'none';
+        menuFallback.hidden = false;
+        return;
+      }
+
+      menuFrame.addEventListener('load', () => {
+        menuLoader.style.display = 'none';
+        clearTimeout(menuLoaderTimer);
+      });
+
+      // Big file: after 15s point people at the "Open in new tab" button.
+      menuLoaderTimer = setTimeout(() => {
+        if (menuLoader.style.display !== 'none') {
+          menuLoaderText.textContent = 'Still loading… you can also tap “Open in new tab” below.';
+        }
+      }, 15000);
+
+      menuFrame.src = MENU_PDF;
+    }
 
     function openMenuModal() {
-      renderMenu(); // Ensure fresh state
       menuOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
+      loadMenuPdf();
     }
 
     function closeMenuModal(event) {
-      // Only close if clicking overlay or close button, not when interacting with scroll
-      if (event && event.target !== menuOverlay && event.target.tagName !== 'BUTTON') return;
+      // Close on backdrop click, the ✕ button, or the Escape key —
+      // never when interacting with the PDF or the action buttons.
+      if (event && event.target !== menuOverlay) return;
       menuOverlay.classList.remove('active');
       document.body.style.overflow = '';
     }
